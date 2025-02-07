@@ -37,6 +37,8 @@ library
     , containers < 0.7
     , mtl >= 2.2.2 && <2.4
     , text < 2.2
+    , aeson >= 2.2.3
+    , bytestring >= 0.12.2
     
   if !impl(ghc >= 8.4.1)
     build-depends: semigroups >= 0.18 && < 0.20
