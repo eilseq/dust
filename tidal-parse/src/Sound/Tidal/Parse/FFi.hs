@@ -4,10 +4,13 @@
 module Sound.Tidal.Parse.FFI where
 
 import Foreign.C.String (CString, peekCString, newCString)
-import qualified Data.Aeson as Aeson  -- Ensure all Aeson functions are qualified
+import qualified Data.Aeson as Aeson
 import Data.Aeson (ToJSON(..), object, (.=))
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.Map.Strict as Map
+import Data.Maybe (fromMaybe)
+import Text.Read (readMaybe)
+import Data.Ratio ((%))
 
 import Sound.Tidal.Parse (parseTidal)
 import Sound.Tidal.Context
@@ -42,36 +45,37 @@ instance (ToJSON a, ToJSON b) => ToJSON (EventF a b) where
                , "value"   .= value
                ]
 
-instance Aeson.ToJSON a => Aeson.ToJSON (Pattern a) where
-    toJSON pat = object ["events" .= queryArc pat (Arc 0 16)]
-
 -- Foreign export wrapper function
-foreign export ccall eval_pattern_c :: CString -> IO CString
-eval_pattern_c :: CString -> IO CString
-eval_pattern_c cStr = do
+foreign export ccall eval_pattern_c :: CString -> CString -> IO CString
+eval_pattern_c :: CString -> CString -> IO CString
+eval_pattern_c cStr cArc = do
     hsStr <- peekCString cStr
-    result <- evalPattern hsStr
+    arcStr <- peekCString cArc
+    let arcLength = fromMaybe 16 (readMaybe arcStr :: Maybe Double)
+    result <- evalPattern hsStr arcLength
     newCString result
 
 -- Function to evaluate and return pattern events as a JSON string
-evalPattern :: String -> IO String
-evalPattern pat = do
-    let parsedResult = parseAndQuery pat
-    return $ B.unpack $ Aeson.encode (either encodeError encodeSuccess parsedResult)
+evalPattern :: String -> Double -> IO String
+evalPattern pat arcLen = do
+    let parsedResult = parseAndQuery pat arcLen
+    return $ B.unpack $ Aeson.encode (either encodeError (encodeSuccess arcLen) parsedResult)
 
 encodeError :: String -> Aeson.Value
 encodeError err = Aeson.object ["error" Aeson..= err]
 
-encodeSuccess :: [Event (Map.Map String Value)] -> Aeson.Value
-encodeSuccess events = Aeson.object ["events" Aeson..= events]
+encodeSuccess :: Double -> [Event (Map.Map String Value)] -> Aeson.Value
+encodeSuccess arcLen events = 
+    Aeson.object ["arcLen" .= arcLen, "events" .= events]
 
 -- Helper functions to handle parsing and querying
-parseAndQuery :: String -> Either String [Event (Map.Map String Value)]
-parseAndQuery str =
+parseAndQuery :: String -> Double -> Either String [Event (Map.Map String Value)]
+parseAndQuery str arcLen =
     case parseTidal str of
-        Left err -> Left (show err)  -- Convert error to a String
+        Left err -> Left (show err)
         Right parsed -> 
-            Right $ query (stripContext parsed) (State (Arc 0 16) Map.empty)
+            let arcTime = toRational arcLen
+            in Right $ query (stripContext parsed) (State (Arc 0 arcTime) Map.empty)
 
 stripContext :: Pattern a -> Pattern a
 stripContext = setContext $ Context []
