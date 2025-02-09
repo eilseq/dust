@@ -1,12 +1,10 @@
-TIDAL_PARSE_DIR = tidal-parse
-
 all: build-libs build
 
 build-libs:
-	cd ${TIDAL_PARSE_DIR} && cabal build --enable-static
+	cd tidal && cabal build tidal-parse-ffi --enable-static
 	mkdir -p lib
-	find . -type f -name 'libHStidal-parse*ghc*.a' -exec cp {} lib \;
-	mv -f lib/libHStidal-parse*ghc*.a lib/libtidalparse.a
+	find . -type f -name 'libHStidal-parse-ffi*ghc*.a' -exec cp {} lib \;
+	mv -f lib/libHStidal-parse-ffi*ghc*.a lib/libtidalparseffi.a
 
 build:
 	cargo build --release

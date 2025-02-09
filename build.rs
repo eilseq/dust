@@ -1,6 +1,6 @@
 fn main() {
     println!("cargo:rustc-link-search=native=lib");
-    println!("cargo:rustc-link-lib=static=tidalparse");
+    println!("cargo:rustc-link-lib=static=tidalparseffi");
     println!("cargo:rustc-link-lib=static=ffi");
 
     // Explicitly link the C++ standard library
