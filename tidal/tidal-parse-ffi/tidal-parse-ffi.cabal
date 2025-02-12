@@ -2,7 +2,7 @@ name:               tidal-parse-ffi
 
 license:            GPL-3
 license-file:       LICENSE
-Extra-source-files: README.md
+extra-doc-files:    CHANGELOG.md, README.md
 
 version:            0.1.0
 build-type:         Simple
@@ -16,13 +16,13 @@ library
   hs-source-dirs:   src
 
   Build-depends:
-      base >=4.8 && <5
-    , containers < 0.7
-    , tidal >= 1.8 && <1.10
-    , tidal-parse >= 0.0.1
-    , aeson >= 2.2.3
-    , bytestring >= 0.12.2
-    , vector >= 0.13
+      base
+    , containers
+    , tidal-parse 
+    , tidal-core 
+    , aeson 
+    , bytestring 
+    , vector
 
 test-suite tests
   type:             exitcode-stdio-1.0
@@ -31,15 +31,15 @@ test-suite tests
   ghc-options:      -Wall
   other-modules:    Sound.Tidal.TidalParseFFITest
   build-depends:
-      base ==4.*
-    , containers < 0.7
+      base
+    , containers
     , tidal-parse-ffi
     , tidal-parse
-    , tidal
-    , aeson >= 2.2.3
-    , bytestring >= 0.12.2
+    , tidal-core
+    , aeson
+    , bytestring
     , HUnit
-    , vector >= 0.13
+    , vector
 
 source-repository head
   type:             git
