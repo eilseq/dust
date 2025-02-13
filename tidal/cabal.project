@@ -1,2 +1,0 @@
-tests: True
-packages: ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link

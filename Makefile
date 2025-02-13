@@ -4,11 +4,8 @@ fetch-libs:
 	[ -d Tidal ] || git clone -b tidal-core https://github.com/eilseq/Tidal.git
 
 build-libs:
-	cd tidal && cabal build tidal-parse-ffi --enable-static
-	mkdir -p lib
-	find . -type f -name 'libHStidal-parse-ffi*ghc*.a' -exec cp {} lib \;
-	mv -f lib/libHStidal-parse-ffi*ghc*.a lib/libtidalparseffi.a
-
+	cd crates/evaluator && make build-libs
+	
 build-app:
 	cargo build --release
 
