@@ -1,5 +1,5 @@
 .DS_Store
-lib
-target
+ext
 Cargo.lock
 tidal
+target
