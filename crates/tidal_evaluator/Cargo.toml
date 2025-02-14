@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-event_handling = { path = "../event_handling" }
 libc = "0.2"
 once_cell = "1.18"
+
+[dev-dependencies]
+event_parser = { path = "../event_parser" }

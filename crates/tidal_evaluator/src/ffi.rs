@@ -1,6 +1,5 @@
 //! Handles communication with Haskell's TidalCycles via FFI.
 
-use event_handling::{parse_tidal_json, Event};
 use libc::c_char;
 use std::ffi::{CStr, CString};
 
@@ -10,7 +9,7 @@ extern "C" {
 }
 
 /// Calls Haskell FFI and parses events.
-pub fn eval_pattern(pattern: &str, arc_length: &str) -> Result<Vec<Event>, String> {
+pub fn eval_pattern(pattern: &str, arc_length: &str) -> Result<String, String> {
     let c_pattern = CString::new(pattern).map_err(|_| "CString conversion failed".to_string())?;
     let c_arc = CString::new(arc_length).map_err(|_| "CString conversion failed".to_string())?;
 
@@ -23,5 +22,5 @@ pub fn eval_pattern(pattern: &str, arc_length: &str) -> Result<Vec<Event>, Strin
         .to_string_lossy()
         .into_owned();
 
-    parse_tidal_json(&result)
+    Ok(result)
 }
