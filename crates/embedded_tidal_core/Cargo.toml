@@ -1,11 +1,8 @@
 [package]
-name = "evaluator"
+name = "embedded_tidal_core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 libc = "0.2"
 once_cell = "1.18"
-
-[dev-dependencies]
-event_parser = { path = "../event_parser" }

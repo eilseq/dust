@@ -1,7 +1,7 @@
 all: fetch-libs build-libs build-app
 
 fetch-libs:
-	[ -d Tidal ] || git clone -b tidal-core https://github.com/eilseq/Tidal.git
+	[ -d Tidal ] || git clone https://github.com/tidalcycles/Tidal.git
 
 build-libs:
 	cd tidal && cabal build tidal-parse-ffi --enable-static

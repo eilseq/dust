@@ -3,27 +3,16 @@
 pub mod event;
 pub mod value;
 
-use crate::event::{NoteEvent, SoundEvent};
+pub use crate::event::Event;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
 /// Represents a parsed pattern response from TidalCycles.
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-#[serde(untagged)]
-pub enum Pattern {
-    PatternSound {
-        #[serde(rename = "arcLen")]
-        arc_len: f64,
-        events: Vec<SoundEvent>,
-    },
-    PatternNote {
-        #[serde(rename = "arcLen")]
-        arc_len: f64,
-        events: Vec<NoteEvent>,
-    },
-    Failure {
-        error: String,
-    },
+pub struct Pattern {
+    #[serde(rename = "arcLen")]
+    pub arc_len: f64,
+    pub events: Vec<Event>,
 }
 
 pub fn parse_json_pattern(json: String) -> Result<Pattern, String> {

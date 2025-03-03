@@ -3,6 +3,14 @@
 use crate::value::{NoteValue, SoundValue};
 use serde::{Deserialize, Serialize};
 
+/// Represents an event, which can be either a `SoundEvent` or `NoteEvent`, determined automatically.
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[serde(untagged)] // Automatically determines type from structure
+pub enum Event {
+    Sound(SoundEvent),
+    Note(NoteEvent),
+}
+
 /// Represents a sound event, specializing BaseEvent.
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct SoundEvent {

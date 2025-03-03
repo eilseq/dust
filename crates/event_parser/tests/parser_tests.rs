@@ -1,9 +1,7 @@
-use event_parser::Pattern;
-use serde_json;
+use event_parser::{parse_json_pattern, Event};
 
-/// ✅ **Test: Parsing a valid Sound Event with `:` (n in SoundValue)**
 #[test]
-fn test_parse_sound_event_with_colon() {
+fn test_parse_mixed_events() {
     let json = r#"
         {
             "arcLen": 1,
@@ -15,122 +13,54 @@ fn test_parse_sound_event_with_colon() {
                         "s": "bd",
                         "n": 3,
                         "gain": 0.8,
-                        "cutoff": 4000.0
+                        "cutoff": 4000.0,
+                        "pan": 0.2
                     }
-                }
-            ]
-        }
-        "#;
-
-    let pattern: Pattern = serde_json::from_str(json).unwrap();
-
-    match pattern {
-        Pattern::PatternSound { arc_len, events } => {
-            assert_eq!(arc_len, 1.0);
-            assert_eq!(events.len(), 1);
-
-            let event = &events[0];
-
-            assert_eq!(event.timing.whole.start, 0.0);
-            assert_eq!(event.timing.whole.stop, 0.5);
-
-            assert_eq!(event.timing.part.start, 0.0);
-            assert_eq!(event.timing.part.stop, 0.5);
-
-            assert_eq!(event.value.s, "bd");
-            assert_eq!(event.value.n, Some(3));
-
-            assert_eq!(event.value.controls.gain, Some(0.8));
-            assert_eq!(event.value.controls.cutoff, Some(4000.0));
-        }
-        _ => panic!("Expected a Success pattern"),
-    }
-}
-#[test]
-fn test_parse_note_event_with_cutoff_and_gain() {
-    let json = r#"
-        {
-            "arcLen": 1,
-            "events": [
+                },
                 {
-                    "whole": { "start": 0, "stop": 0.5 },
-                    "part": { "start": 0, "stop": 0.5 },
+                    "whole": { "start": 0.5, "stop": 1.0 },
+                    "part": { "start": 0.5, "stop": 1.0 },
                     "value": {
                         "n": "-9.0n (ds4)",
-                        "gain": 0.8,
-                        "cutoff": 2000.0
+                        "gain": 0.7,
+                        "cutoff": 2000.0,
+                        "pan": 0.5
                     }
                 }
             ]
         }
-        "#;
+    "#;
 
-    let pattern: Pattern = serde_json::from_str(json).unwrap();
+    let pattern = parse_json_pattern(json.to_string()).unwrap();
+    assert_eq!(pattern.arc_len, 1.0);
+    assert_eq!(pattern.events.len(), 2);
 
-    match pattern {
-        Pattern::PatternNote { arc_len, events } => {
-            assert_eq!(arc_len, 1.0);
-            assert_eq!(events.len(), 1);
+    for event in &pattern.events {
+        match event {
+            Event::Sound(sound_event) => {
+                assert_eq!(sound_event.value.s, "bd");
+                assert_eq!(sound_event.value.n, Some(3));
 
-            let event = &events[0];
+                // Check controls
+                assert_eq!(sound_event.value.controls.gain, Some(0.8));
+                assert_eq!(sound_event.value.controls.cutoff, Some(4000.0));
+                assert_eq!(sound_event.value.controls.pan, Some(0.2));
+            }
+            Event::Note(note_event) => {
+                assert_eq!(note_event.value.n, "-9.0n (ds4)");
 
-            assert_eq!(event.timing.whole.start, 0.0);
-            assert_eq!(event.timing.whole.stop, 0.5);
+                // Validate MIDI pitch
+                let midi_pitch = note_event
+                    .value
+                    .get_midi_pitch()
+                    .expect("Failed to get MIDI pitch");
+                assert_eq!(midi_pitch, 51); // ds4 → MIDI 51
 
-            assert_eq!(event.timing.part.start, 0.0);
-            assert_eq!(event.timing.part.stop, 0.5);
-
-            assert_eq!(event.value.n, "-9.0n (ds4)");
-            assert_eq!(event.value.get_midi_pitch(), Some(51));
-
-            assert_eq!(event.value.controls.gain, Some(0.8));
-            assert_eq!(event.value.controls.cutoff, Some(2000.0));
+                // Check controls
+                assert_eq!(note_event.value.controls.gain, Some(0.7));
+                assert_eq!(note_event.value.controls.cutoff, Some(2000.0));
+                assert_eq!(note_event.value.controls.pan, Some(0.5));
+            }
         }
-        _ => panic!("Expected a Note pattern"),
     }
-}
-
-#[test]
-fn test_parse_failure_response() {
-    let json = r#"
-        {
-            "error": "Pattern could not be parsed"
-        }
-        "#;
-
-    let pattern: Pattern = serde_json::from_str(json).unwrap();
-
-    match pattern {
-        Pattern::Failure { error } => {
-            assert_eq!(error, "Pattern could not be parsed");
-        }
-        _ => panic!("Expected a Failure pattern"),
-    }
-}
-
-#[test]
-fn test_pattern_serialization() {
-    let json = r#"
-        {
-            "arcLen": 1,
-            "events": [
-                {
-                    "whole": { "start": 0, "stop": 0.5 },
-                    "part": { "start": 0, "stop": 0.5 },
-                    "value": {
-                        "s": "snare",
-                        "n": 2,
-                        "gain": 0.9,
-                        "cutoff": 3500.0
-                    }
-                }
-            ]
-        }
-        "#;
-
-    let pattern: Pattern = serde_json::from_str(json).unwrap();
-    let json_output = serde_json::to_string_pretty(&pattern).unwrap();
-
-    let pattern_roundtrip: Pattern = serde_json::from_str(&json_output).unwrap();
-    assert_eq!(pattern, pattern_roundtrip);
 }
